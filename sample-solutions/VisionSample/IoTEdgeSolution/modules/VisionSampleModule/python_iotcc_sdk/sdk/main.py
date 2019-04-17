@@ -12,8 +12,9 @@ import iot
 
 from camera import CameraClient
 
-
+restartCamera = False
 def main(protocol=None):
+ 
     print("\nPython %s\n" % sys.version)
     parser = argparse.ArgumentParser()
     parser.add_argument('-p','--pushmodel',help ='sets whether to push the model and required files to device or not', default=True)
@@ -30,7 +31,7 @@ def main(protocol=None):
     
     #getting Iot hub sdk ready with hub manager
     hub_manager = iot.HubManager()
-
+    print("value of restartCamera is :: " + str(iot.restartCamera))
     #Connecting to camer using ipcWebServer SDK and turing camera on and then starting inferencing 
     with CameraClient.connect(ip_address=ip_addr, username=username, password=password) as camera_client:
         #transferring model files to camera for inferencing 
@@ -84,6 +85,9 @@ def main(protocol=None):
 def print_inferences(results=None, camera_client=None,hub_manager=None):
     print("")
     for result in results:
+        if iot.restartCamera :
+            print(iot.restartCamera)
+            restartInference(camera_client)
         if result is not None and result.objects is not None and len(result.objects):
             timestamp = result.timestamp
             if timestamp:
@@ -91,6 +95,9 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
             else:
                 print("timestamp= " + "None")
             for object in result.objects:
+                if iot.restartCamera :
+                    print(iot.restartCamera)
+                    restartInference(camera_client)
                 id = object.id
                 print("id={}".format(id))
                 label = object.label
@@ -106,6 +113,18 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
                 print("")
         else:
             print("No results")
+
+def restartInference(camera_client = None) :
+    camera_client.set_overlay_state("off")
+    camera_client.set_analytics_state("off")
+    time.sleep(1)
+    camera_client.set_analytics_state("on")
+    camera_client.set_overlay_state("on")
+    iot.restartCamera = False
+    #camera_client.set_preview_state("off")
+    #camera_client.logout()
+    #iot.setRestartCamera(False)
+    #main()
 
 if __name__ == '__main__':
     main()

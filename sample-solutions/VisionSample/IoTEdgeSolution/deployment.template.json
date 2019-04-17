@@ -59,7 +59,7 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.VisionSampleModule.arm32v7}",
-              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/data/misc/camera:/app/vam_model_folder\"],\"NetworkMode\":\"host\"},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"Cmd\":[\"-p True\"]}"
+              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/data/misc/camera:/app/vam_model_folder\"],\"NetworkMode\":\"host\"},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"Cmd\":[\"-p False\"]}"
             }
           }
         }
@@ -74,6 +74,13 @@
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
+      }
+    },
+    "VisionSampleModule": {
+      "properties.desired":{
+          "ModelUrl":"",
+          "LabelUrl":"",
+          "ConfigUrl":""
       }
     }
   }

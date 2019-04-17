@@ -6,6 +6,7 @@ import shutil
 import socket
 import logging
 import json
+import urllib.request as urllib2
 
 
 logging.basicConfig(level=logging.INFO)
@@ -46,9 +47,19 @@ def prepare_folder(folder):
     else:
         os.makedirs(folder, exist_ok=True)
 
+def GetFile(ModelUrl) :
+    FileName = ModelUrl.split("/")[-1]
+    if FileName:
+        # find root folders
+        dirpath = os.getcwd()
+        #src = os.path.join(dirpath,"model")
+        dst = os.path.abspath("/app/vam_model_folder")
+        urllib2.urlretrieve(ModelUrl, filename=(os.path.join(dst,FileName)))
+    else:
+        print("Cannot extract file name from URL")
+
 # thsi function pushes a new model to device to location /data/misc/camera mounted at /app/vam_model_folder
 def transferdlc(model_name = None):
-
         # find root folders
         dirpath = os.getcwd()
         src = os.path.join(dirpath,"model")

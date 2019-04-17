@@ -5,8 +5,11 @@ import subprocess as sp
 import sys
 import shutil
 import socket
+import utility
+from utility import GetFile
+
 import iothub_client
-from iothub_client import IoTHubClient, IoTHubMessage, IoTHubModuleClient, IoTHubMessageDispositionResult,IoTHubClientError, IoTHubTransportProvider, IoTHubClientResult, IoTHubError
+from iothub_client import IoTHubMessage, IoTHubModuleClient, IoTHubMessageDispositionResult,IoTHubClientError, IoTHubTransportProvider,  IoTHubError
 
 import json 
 
@@ -19,64 +22,73 @@ MESSAGE_TIMEOUT = 10000
 # global counters
 RECEIVE_CALLBACKS = 0
 SEND_CALLBACKS = 0
+ModelUrl = ""
+LabelUrl = ""
+ConfigUrl = ""
+restartCamera = False
 
+def module_twin_callback(update_state, payload, user_context):
+    global ModelUrl
+    global LabelUrl
+    global ConfigUrl
+    global restartCamera
+    print ( "" )
+    print ( "Twin callback called with:" )
+    print ( "    updateStatus: %s" % update_state )
+    print ( "    payload: %s" % payload )
+    data = json.loads(payload)
+    if "desired" in data and "ModelUrl" in data["desired"]:
+        ModelUrl = data["desired"]["ModelUrl"]
+        if ModelUrl:
+            print("Setting value to %s from ::  data[\"desired\"][\"ModelUrl\"]" % ModelUrl)
+            GetFile(ModelUrl)
+    if "ModelUrl" in data:
+        ModelUrl = data["ModelUrl"]
+        if ModelUrl:
+            print("Setting value to %s from ::  data[\"ModelUrl\"]" % ModelUrl)
+            GetFile(ModelUrl)
+    
+    if "desired" in data and "LabelUrl" in data["desired"]:
+        LabelUrl = data["desired"]["LabelUrl"]
+        if LabelUrl:
+            print("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
+            GetFile(LabelUrl)
+        else:
+            print(LabelUrl)
+    if "LabelUrl" in data:
+        LabelUrl = data["LabelUrl"]
+        if LabelUrl:
+            print("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
+            GetFile(LabelUrl)
+        
+    
+    if "desired" in data and "ConfigUrl" in data["desired"]:
+        ConfigUrl = data["desired"]["ConfigUrl"]
+        if ConfigUrl:
+            print("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
+            GetFile(ConfigUrl)
 
-def device_twin_callback(update_state, payload, user_context):
-        print ( "" )
-        print ( "Twin callback called with:" )
-        print ( "    updateStatus: %s" % update_state )
-        print ( "    payload: %s" % payload )
+    if "ConfigUrl" in data:
+        ConfigUrl = data["ConfigUrl"]
+        if ConfigUrl:
+            print("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
+            GetFile(ConfigUrl)
+    restartCamera = True    
+    #setRestartCamera(True)
 
+def getRestartCamera():
+    global restartCamera
+    return restartCamera
+
+def setRestartCamera(l_restartCamera):
+    global restartCamera 
+    print("calling setRestartCamera")   
+    restartCamera = l_restartCamera
 def send_reported_state_callback(status_code, user_context):
     print ( "" )
     print ( "Confirmation for reported state called with:" )
     print ( "    status_code: %d" % status_code )
-
-class sendip_info_to_portal:
-    PROTOCOL = IoTHubTransportProvider.MQTT
-    TIMER_COUNT = 2
-    
-    TWIN_CONTEXT = 0 
-    SEND_REPORTED_STATE_CONTEXT = 0
-
-    def iothub_client_init(self):
-      
-        protocol=IoTHubTransportProvider.MQTT
-        client = IoTHubModuleClient()
-        client.create_from_environment(protocol)
-        PYTHON_PRODUCT_INFO = "Peabody Sample device"
-        OPTION_PRODUCT_INFO = "product_info"
-        client.set_option(client,"product_info", PYTHON_PRODUCT_INFO)
-        
-        
-        
-        if client.protocol == IoTHubTransportProvider.MQTT or client.protocol == IoTHubTransportProvider.MQTT_WS:
-            client.set_module_twin_callback(device_twin_callback, self.TWIN_CONTEXT)
-        return client 
-    
-
-    def iothub_client_sample_run(self,message):
-        try:
-            client = self.iothub_client_init()
-            if client.protocol == IoTHubTransportProvider.MQTT:
-                print ( "Sending data as reported property..." )
-                reported_state = "{\"rtsp_addr\":\"" + message + "\"}"
-                client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, self.SEND_REPORTED_STATE_CONTEXT)
-                status_counter = 0
-                while status_counter <= self.TIMER_COUNT:
-                    status = client.get_send_status()
-                    time.sleep(2)
-                    status_counter += 1 
-    
-        except IoTHubError as iothub_error:
-            print ( "Unexpected error %s from IoTHub" % iothub_error )
-            return
-        except KeyboardInterrupt:
-            print ( "IoTHubClient sample stopped" )
-        #except Exception as e:
-            #print("Exception occured :: " + e.__str__)
             
-
 # Callback received when the message that we're forwarding is processed.
 def send_confirmation_callback(message, result, user_context):
     global SEND_CALLBACKS
@@ -124,6 +136,7 @@ class HubManager(object):
         # sets the callback when a message arrives on "input1" queue.  Messages sent to 
         # other inputs or to the default will be silently discarded.
         self.client.set_message_callback("input1", receive_message_callback, self)
+        self.client.set_module_twin_callback(module_twin_callback, self)
 
     # Forwards the message received onto the next stage in the process.
     def forward_event_to_output(self, outputQueueName, event, send_context):
@@ -132,7 +145,6 @@ class HubManager(object):
     
     def iothub_client_sample_run(self,message):
         try:
-            #client = self.iothub_client_init()
             if self.client.protocol == IoTHubTransportProvider.MQTT:
                 print ( "Sending data as reported property..." )
                 reported_state = "{\"rtsp_addr\":\"" + message + "\"}"

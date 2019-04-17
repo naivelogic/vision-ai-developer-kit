@@ -10,9 +10,9 @@
             "loggingOptions": "",
             "registryCredentials": {
               "mycapreg": {
-                "username": "$CONTAINER_REGISTRY_USERNAME",
-                "password": "$CONTAINER_REGISTRY_PASSWORD",
-                "address": "$CONTAINER_REGISTRY_ADDRESS"
+                "username": "MyCapReg",
+                "password": "hJ8zqIEUm0t8KKcHGxsUvffRKKPEn/pX",
+                "address": "mycapreg.azurecr.io"
               }
             }
           }
@@ -58,8 +58,8 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mycapreg.azurecr.io/visionsamplemodule:1.0.8_SSD-arm32v7",
-              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/data/misc/camera:/app/vam_model_folder\"],\"NetworkMode\":\"host\"},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"Cmd\":[\"-p True\"]}"
+              "image": "mycapreg.azurecr.io/visionsamplemodule:1.0.11_SSD-arm32v7",
+              "createOptions": "{\"HostConfig\":{\"Binds\":[\"/data/misc/camera:/app/vam_model_folder\"],\"NetworkMode\":\"host\"},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"Cmd\":[\"-p False\"]}"
             }
           }
         }
@@ -74,6 +74,13 @@
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
         }
+      }
+    },
+    "VisionSampleModule": {
+      "properties.desired": {
+        "ModelUrl": "",
+        "LabelUrl": "",
+        "ConfigUrl": ""
       }
     }
   }

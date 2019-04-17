@@ -13,8 +13,6 @@ from camera import CameraClient
 import utility
 import traceback
 
-import numpy as np
-from cv2 import cv2
 
 def main(protocol=None):
     print("\nPython %s\n" % sys.version)
@@ -32,7 +30,7 @@ def main(protocol=None):
     password = args.password
 
     #Please change this address to camer ip address can be found by using adb shell -> ifconfig
-    ip_addr = '192.168.0.103'
+    ip_addr = '172.16.9.0'
     #hub_manager = iot.HubManager()
     #utility.transferdlc()
     with CameraClient.connect(ip_address=ip_addr, username=username, password=password) as camera_client:
@@ -46,10 +44,10 @@ def main(protocol=None):
         
         rtsp_stream_addr = str(camera_client.preview_url)
         print("rtsp stream is :: " + rtsp_stream_addr)
-
-        if not camera_client.captureimage():
-            print("captureimage failed")
-        #Vam(Video analytics engine ) this will take the model and run on thee device 
+        while(True):
+            if not camera_client.captureimage():
+                print("captureimage failed")
+        
         camera_client.set_analytics_state("on")
         print(camera_client.vam_url)
         
@@ -67,22 +65,18 @@ def main(protocol=None):
             print("Stopping")
 
 
-def print_inferences(results=None, camera_client=None):
+def print_inferences(results=None, camera_client=None, debug=False):
     print("")
     for result in results:
         if result is not None and result.objects is not None and len(result.objects):
             timestamp = result.timestamp
-            if timestamp:
-                print("timestamp={}".format(timestamp))
-            else:
-                print("timestamp= " + "None")
             for object in result.objects:
                 id = object.id
-                print("id={}".format(id))
+                
                 label = object.label
-                print("label={}".format(label))
+              
                 confidence = object.confidence
-                print("confidence={}".format(confidence))
+                
                 #if int(confidence) >= 90:
                     #if not camera_client.captureimage():
                         #print("captureimage failed for {}".format(label))
@@ -90,10 +84,19 @@ def print_inferences(results=None, camera_client=None):
                 y = object.position.y
                 w = object.position.width
                 h = object.position.height
-                print("Position(x,y,w,h)=({},{},{},{})".format(x, y, w, h))
-                print("")
+            if debug:
+                if timestamp:
+                    print("timestamp={}".format(timestamp))
+                else:
+                    print("timestamp= " + "None")
+                    print("id={}".format(id))
+                    print("label={}".format(label))
+                    print("confidence={}".format(confidence))
+                    print("Position(x,y,w,h)=({},{},{},{})".format(x, y, w, h))
+                    print("")
         else:
-            print("No results")
+            if debug:
+                print("No results")
 
 if __name__ == '__main__':
     main()
