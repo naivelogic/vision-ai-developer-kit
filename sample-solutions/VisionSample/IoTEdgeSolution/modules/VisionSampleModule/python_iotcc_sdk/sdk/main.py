@@ -14,10 +14,11 @@ from camera import CameraClient
 
 restartCamera = False
 def main(protocol=None):
- 
+    #while(True):
+        #time.sleep(1)
     print("\nPython %s\n" % sys.version)
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p','--pushmodel',help ='sets whether to push the model and required files to device or not', default=True)
+    parser.add_argument('-p','--pushmodel',help ='sets whether to push the model and required files to device or not', default=False)
     parser.add_argument('--ip', help='ip address of the camera', default=utility.getWlanIp())
     parser.add_argument('--username', help='username of the camera', default='admin')
     parser.add_argument('--password', help='password of the camera', default='admin')
@@ -35,14 +36,10 @@ def main(protocol=None):
     #Connecting to camer using ipcWebServer SDK and turing camera on and then starting inferencing 
     with CameraClient.connect(ip_address=ip_addr, username=username, password=password) as camera_client:
         #transferring model files to camera for inferencing 
-        if mypushmodel.find("True") == -1 :
-            print("Not transferring dlc  as per parameter passed")
-        else :
-            print("transferring model ,label and va config file as set in create option with -p %s passed" % mypushmodel)
-            utility.transferdlc()
-        
+        utility.transferdlc(mypushmodel)
+       
         #this call we set the camera to dispaly over HDMI 
-        print(camera_client.configure_preview(resolution="1080P",display_out=1))
+        print(camera_client.configure_preview(resolution="1080P",encode="AVC/H.264",bitrate="1.5Mbps",display_out=1))
         # this call turns on the camera and start transmetting over RTSP and HDMI a stream from camera 
         camera_client.set_preview_state("on")
        
@@ -87,7 +84,7 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
     for result in results:
         if iot.restartCamera :
             print(iot.restartCamera)
-            restartInference(camera_client)
+            restartInference(camera_client,hub_manager)
         if result is not None and result.objects is not None and len(result.objects):
             timestamp = result.timestamp
             if timestamp:
@@ -97,7 +94,7 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
             for object in result.objects:
                 if iot.restartCamera :
                     print(iot.restartCamera)
-                    restartInference(camera_client)
+                    restartInference(camera_client,hub_manager)
                 id = object.id
                 print("id={}".format(id))
                 label = object.label
@@ -114,17 +111,54 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
         else:
             print("No results")
 
-def restartInference(camera_client = None) :
-    camera_client.set_overlay_state("off")
+def restartInference(camera_client = None,hub_manager = None) :
+    """camera_client.set_overlay_state("off")
     camera_client.set_analytics_state("off")
-    time.sleep(1)
+    time.sleep(5)
     camera_client.set_analytics_state("on")
-    camera_client.set_overlay_state("on")
+    camera_client.set_overlay_state("on")"""
     iot.restartCamera = False
-    #camera_client.set_preview_state("off")
-    #camera_client.logout()
-    #iot.setRestartCamera(False)
-    #main()
+    camera_client.set_preview_state("off")
+    camera_client.logout()
+    time.sleep(2)
+    ip_addr = utility.getWlanIp()
+    with CameraClient.connect(ip_address=ip_addr, username='admin', password='admin') as camera_client:
+        #this call we set the camera to dispaly over HDMI 
+        #print(camera_client.configure_preview(resolution="1080P",display_out=1))
+        # this call turns on the camera and start transmetting over RTSP and HDMI a stream from camera 
+        camera_client.set_preview_state("on")
+        #Vam(Video analytics engine ) this will take the model and run on thee device 
+        camera_client.set_analytics_state("on")
+        print(camera_client.vam_url)
+        
+        # this will set the frames to be overlayed with information recieved from inference results ffrom your model
+        camera_client.configure_overlay("inference")
+
+        #Turning overlay to Truse to see inferencing frame overlayed with inference results
+        camera_client.set_overlay_state("on")
+
+        # heer we will use gstreamer to get the inference results from camera into thsi module and then send them up to cloud or another module
+        try:
+            with camera_client.get_inferences() as results:
+                print_inferences(results,camera_client,hub_manager)
+        except KeyboardInterrupt:
+            print("Stopping")
+        try:
+            print("inside infinite loop now")
+            while(True):
+                time.sleep(2)
+        except KeyboardInterrupt:
+            print("Stopping")
+
+        # turning everything off and logging out ...
+        camera_client.set_overlay_state("off")
+
+        camera_client.set_analytics_state("off")
+
+        camera_client.set_preview_state("off")
+
+    
+
 
 if __name__ == '__main__':
     main()

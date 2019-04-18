@@ -30,7 +30,7 @@ def main(protocol=None):
     password = args.password
 
     #Please change this address to camer ip address can be found by using adb shell -> ifconfig
-    ip_addr = '172.16.9.0'
+    ip_addr = '192.168.0.110'
     #hub_manager = iot.HubManager()
     #utility.transferdlc()
     with CameraClient.connect(ip_address=ip_addr, username=username, password=password) as camera_client:
@@ -44,9 +44,9 @@ def main(protocol=None):
         
         rtsp_stream_addr = str(camera_client.preview_url)
         print("rtsp stream is :: " + rtsp_stream_addr)
-        while(True):
-            if not camera_client.captureimage():
-                print("captureimage failed")
+        
+        if not camera_client.captureimage():
+            print("captureimage failed")
         
         camera_client.set_analytics_state("on")
         print(camera_client.vam_url)
@@ -57,6 +57,19 @@ def main(protocol=None):
         #Turning overlay to Truse to see inferencing frame overlayed with inference results
         camera_client.set_overlay_state("on")
 
+        #Turning overlay to Truse to see inferencing frame overlayed with inference results
+        #camera_client.set_overlay_state("off")
+        camera_client.set_analytics_state("off")
+        print(camera_client.vam_url)
+
+        camera_client.set_analytics_state("on")
+        print(camera_client.vam_url)
+        
+        # this will set the frames to be overlayed with information recieved from inference results ffrom your model
+        camera_client.configure_overlay("inference")
+
+        #Turning overlay to Truse to see inferencing frame overlayed with inference results
+        camera_client.set_overlay_state("on")
         # heer we will use gstreamer to get the inference results from camera into thsi module and then send them up to cloud or another module
         try:
             with camera_client.get_inferences() as results:
