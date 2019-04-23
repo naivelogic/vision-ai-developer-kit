@@ -55,8 +55,10 @@ def GetFile(ModelUrl) :
         #src = os.path.join(dirpath,"model")
         dst = os.path.abspath("/app/vam_model_folder")
         urllib2.urlretrieve(ModelUrl, filename=(os.path.join(dst,FileName)))
+        return True
     else:
         print("Cannot extract file name from URL")
+        return False
 
 # thsi function pushes a new model to device to location /data/misc/camera mounted at /app/vam_model_folder
 def transferdlc(pushmodel=None):

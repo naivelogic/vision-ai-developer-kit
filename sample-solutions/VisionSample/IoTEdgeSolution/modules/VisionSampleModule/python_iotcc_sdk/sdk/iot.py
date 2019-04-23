@@ -7,6 +7,8 @@ import shutil
 import socket
 import utility
 from utility import GetFile
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 import iothub_client
 from iothub_client import IoTHubMessage, IoTHubModuleClient, IoTHubMessageDispositionResult,IoTHubClientError, IoTHubTransportProvider,  IoTHubError
@@ -26,78 +28,101 @@ ModelUrl = ""
 LabelUrl = ""
 ConfigUrl = ""
 restartCamera = False
+FreqToSendMsg = 1
+ObjectOfInterest = "ALL"
 
 def module_twin_callback(update_state, payload, user_context):
     global ModelUrl
     global LabelUrl
     global ConfigUrl
     global restartCamera
-    print ( "" )
-    print ( "Twin callback called with:" )
-    print ( "    updateStatus: %s" % update_state )
-    print ( "    payload: %s" % payload )
+    global FreqToSendMsg
+    global ObjectOfInterest
+    logging.debug ( "" )
+    logging.debug ( "Twin callback called with:" )
+    logging.debug ( "    updateStatus: %s" % update_state )
+    logging.debug ( "    payload: %s" % payload )
     data = json.loads(payload)
-    if "desired" in data and "ModelUrl" in data["desired"]:
-        ModelUrl = data["desired"]["ModelUrl"]
-        if ModelUrl:
-            print("Setting value to %s from ::  data[\"desired\"][\"ModelUrl\"]" % ModelUrl)
-            GetFile(ModelUrl)
-    if "ModelUrl" in data:
-        ModelUrl = data["ModelUrl"]
-        if ModelUrl:
-            print("Setting value to %s from ::  data[\"ModelUrl\"]" % ModelUrl)
-            GetFile(ModelUrl)
+    downloadUrl(data,ModelUrl)
     
     if "desired" in data and "LabelUrl" in data["desired"]:
         LabelUrl = data["desired"]["LabelUrl"]
         if LabelUrl:
-            print("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
+            logging.debug("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
             GetFile(LabelUrl)
+            restartCamera = True  
         else:
-            print(LabelUrl)
+            logging.debug(LabelUrl)
     if "LabelUrl" in data:
         LabelUrl = data["LabelUrl"]
         if LabelUrl:
-            print("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
+            logging.debug("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
             GetFile(LabelUrl)
+            restartCamera = True  
         
     
     if "desired" in data and "ConfigUrl" in data["desired"]:
         ConfigUrl = data["desired"]["ConfigUrl"]
         if ConfigUrl:
-            print("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
+            logging.debug("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
             GetFile(ConfigUrl)
+            restartCamera = True  
 
     if "ConfigUrl" in data:
         ConfigUrl = data["ConfigUrl"]
         if ConfigUrl:
-            print("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
+            logging.debug("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
             GetFile(ConfigUrl)
-    restartCamera = True    
-    #setRestartCamera(True)
+            restartCamera = True  
 
-def getRestartCamera():
+    if "desired" in data and "FreqToSendMsg" in data["desired"]:
+        
+        FreqToSendMsg = data["desired"]["FreqToSendMsg"]
+        logging.debug("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
+
+    if "FreqToSendMsg" in data:
+        FreqToSendMsg = data["FreqToSendMsg"]
+        logging.debug("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
+
+    if "desired" in data and "ObjectOfInterest" in data["desired"]:
+        ObjectOfInterest = data["desired"]["ObjectOfInterest"]
+        logging.debug("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
+
+    if "ObjectOfInterest" in data:
+        ObjectOfInterest = data["ObjectOfInterest"]
+        logging.debug("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
+
+def downloadUrl(data,url):
     global restartCamera
-    return restartCamera
+    if "desired" in data and url in data["desired"]:
+        url = data["desired"][url]
+        if url:
+            logging.debug("Setting value to %s from ::  data[\"desired\"][url]" % url)
+            restartCamera = GetFile(url)
+             
+    if url in data:
+        url = data[url]
+        if url:
+            logging.debug("Setting value to %s from ::  data[url]" % url)
+            restartCamera = GetFile(url)
+   
+            
 
-def setRestartCamera(l_restartCamera):
-    global restartCamera 
-    print("calling setRestartCamera")   
-    restartCamera = l_restartCamera
+
 def send_reported_state_callback(status_code, user_context):
-    print ( "" )
-    print ( "Confirmation for reported state called with:" )
-    print ( "    status_code: %d" % status_code )
+    logging.debug ( "" )
+    logging.debug ( "Confirmation for reported state called with:" )
+    logging.debug ( "    status_code: %d" % status_code )
             
 # Callback received when the message that we're forwarding is processed.
 def send_confirmation_callback(message, result, user_context):
     global SEND_CALLBACKS
-    print ( "Confirmation[%d] received for message with result = %s" % (user_context, result) )
+    logging.info ( "Confirmation[%d] received for message with result = %s" % (user_context, result) )
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
-    print ( "    Properties: %s" % key_value_pair )
+    logging.info ( "    Properties: %s" % key_value_pair )
     SEND_CALLBACKS += 1
-    print ( "    Total calls confirmed: %d" % SEND_CALLBACKS )
+    logging.info ( "    Total calls confirmed: %d" % SEND_CALLBACKS )
 
 
 # receive_message_callback is invoked when an incoming message arrives on the specified 
@@ -107,12 +132,12 @@ def receive_message_callback(message, hubManager):
     global RECEIVE_CALLBACKS
     message_buffer = message.get_bytearray()
     size = len(message_buffer)
-    print ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
+    logging.debug ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
-    print ( "    Properties: %s" % key_value_pair )
+    logging.debug ( "    Properties: %s" % key_value_pair )
     RECEIVE_CALLBACKS += 1
-    print ( "    Total calls received: %d" % RECEIVE_CALLBACKS )
+    logging.debug ( "    Total calls received: %d" % RECEIVE_CALLBACKS )
     hubManager.forward_event_to_output("output1", message, 0)
     return IoTHubMessageDispositionResult.ACCEPTED
 
@@ -146,7 +171,7 @@ class HubManager(object):
     def iothub_client_sample_run(self,message):
         try:
             if self.client.protocol == IoTHubTransportProvider.MQTT:
-                print ( "Sending data as reported property..." )
+                logging.debug ( "Sending data as reported property..." )
                 reported_state = "{\"rtsp_addr\":\"" + message + "\"}"
                 self.client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, self.SEND_REPORTED_STATE_CONTEXT)
                 status_counter = 0
@@ -156,20 +181,20 @@ class HubManager(object):
                     status_counter += 1 
              
         except IoTHubError as iothub_error:
-            print ( "Unexpected error %s from IoTHub" % iothub_error )
+            logging.debug ( "Unexpected error %s from IoTHub" % iothub_error )
             return
         except KeyboardInterrupt:
-            print ( "IoTHubClient sample stopped" )
+            logging.debug ( "IoTHubClient sample stopped" )
 
     def SendMsgToCloud(self, msg):
         try :
-            #print("sending message...")
+            logging.info("sending message...")
             message=IoTHubMessage(msg)
             self.client.send_event_async(
                 "output1", message, send_confirmation_callback, 0)
-            #print("finished sending message...")
+            logging.info("finished sending message...")
         except Exception :
-            print ("Exception in SendMsgToCloud")
+            logging.debug ("Exception in SendMsgToCloud")
             pass
     
  

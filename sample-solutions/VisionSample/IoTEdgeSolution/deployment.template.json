@@ -80,7 +80,9 @@
       "properties.desired":{
           "ModelUrl":"",
           "LabelUrl":"",
-          "ConfigUrl":""
+          "ConfigUrl":"",
+          "FreqToSendMsg": 1,
+          "ObjectOfInterest":"ALL"
       }
     }
   }
