@@ -58,7 +58,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mycapreg.azurecr.io/visionsamplemodule:1.0.14_SSD-arm32v7",
+              "image": "mycapreg.azurecr.io/visionsamplemodule:1.0.15_SSD-arm32v7",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/data/misc/camera:/app/vam_model_folder\"],\"NetworkMode\":\"host\"},\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"Cmd\":[\"-p False\"]}"
             }
           }

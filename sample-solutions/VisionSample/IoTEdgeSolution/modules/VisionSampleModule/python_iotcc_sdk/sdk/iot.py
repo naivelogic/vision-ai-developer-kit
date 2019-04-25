@@ -28,7 +28,7 @@ ModelUrl = ""
 LabelUrl = ""
 ConfigUrl = ""
 restartCamera = False
-FreqToSendMsg = 1
+FreqToSendMsg = 10
 ObjectOfInterest = "ALL"
 
 def module_twin_callback(update_state, payload, user_context):
@@ -43,8 +43,22 @@ def module_twin_callback(update_state, payload, user_context):
     print ( "    updateStatus: %s" % update_state )
     print ( "    payload: %s" % payload )
     data = json.loads(payload)
-    downloadUrl(data,ModelUrl)
-    
+
+    if "desired" in data and "ModelUrl" in data["desired"]:
+        ModelUrl = data["desired"]["ModelUrl"]
+        if ModelUrl:
+            print("Setting value to %s from ::  data[\"desired\"][\"ModelUrl\"]" % ModelUrl)
+            GetFile(ModelUrl)
+            restartCamera = True  
+        else:
+            print(ModelUrl)
+    if "ModelUrl" in data:
+        ModelUrl = data["ModelUrl"]
+        if ModelUrl:
+            print("Setting value to %s from ::  data[\"ModelUrl\"]" % ModelUrl)
+            GetFile(ModelUrl)
+            restartCamera = True  
+
     if "desired" in data and "LabelUrl" in data["desired"]:
         LabelUrl = data["desired"]["LabelUrl"]
         if LabelUrl:

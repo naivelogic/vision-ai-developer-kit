@@ -81,7 +81,7 @@
           "ModelUrl":"",
           "LabelUrl":"",
           "ConfigUrl":"",
-          "FreqToSendMsg": 1,
+          "FreqToSendMsg": 10,
           "ObjectOfInterest":"ALL"
       }
     }
