@@ -8,7 +8,7 @@ import socket
 import utility
 from utility import GetFile
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=print)
 
 import iothub_client
 from iothub_client import IoTHubMessage, IoTHubModuleClient, IoTHubMessageDispositionResult,IoTHubClientError, IoTHubTransportProvider,  IoTHubError
@@ -38,25 +38,25 @@ def module_twin_callback(update_state, payload, user_context):
     global restartCamera
     global FreqToSendMsg
     global ObjectOfInterest
-    logging.debug ( "" )
-    logging.debug ( "Twin callback called with:" )
-    logging.debug ( "    updateStatus: %s" % update_state )
-    logging.debug ( "    payload: %s" % payload )
+    print ( "" )
+    print ( "Twin callback called with:" )
+    print ( "    updateStatus: %s" % update_state )
+    print ( "    payload: %s" % payload )
     data = json.loads(payload)
     downloadUrl(data,ModelUrl)
     
     if "desired" in data and "LabelUrl" in data["desired"]:
         LabelUrl = data["desired"]["LabelUrl"]
         if LabelUrl:
-            logging.debug("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
+            print("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
             GetFile(LabelUrl)
             restartCamera = True  
         else:
-            logging.debug(LabelUrl)
+            print(LabelUrl)
     if "LabelUrl" in data:
         LabelUrl = data["LabelUrl"]
         if LabelUrl:
-            logging.debug("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
+            print("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
             GetFile(LabelUrl)
             restartCamera = True  
         
@@ -64,55 +64,55 @@ def module_twin_callback(update_state, payload, user_context):
     if "desired" in data and "ConfigUrl" in data["desired"]:
         ConfigUrl = data["desired"]["ConfigUrl"]
         if ConfigUrl:
-            logging.debug("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
+            print("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
             GetFile(ConfigUrl)
             restartCamera = True  
 
     if "ConfigUrl" in data:
         ConfigUrl = data["ConfigUrl"]
         if ConfigUrl:
-            logging.debug("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
+            print("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
             GetFile(ConfigUrl)
             restartCamera = True  
 
     if "desired" in data and "FreqToSendMsg" in data["desired"]:
         
         FreqToSendMsg = data["desired"]["FreqToSendMsg"]
-        logging.debug("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
+        print("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
 
     if "FreqToSendMsg" in data:
         FreqToSendMsg = data["FreqToSendMsg"]
-        logging.debug("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
+        print("Setting value to %s from ::  data[\"FreqToSendMsg\"]" % FreqToSendMsg)
 
     if "desired" in data and "ObjectOfInterest" in data["desired"]:
         ObjectOfInterest = data["desired"]["ObjectOfInterest"]
-        logging.debug("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
+        print("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
 
     if "ObjectOfInterest" in data:
         ObjectOfInterest = data["ObjectOfInterest"]
-        logging.debug("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
+        print("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
 
 def downloadUrl(data,url):
     global restartCamera
     if "desired" in data and url in data["desired"]:
         url = data["desired"][url]
         if url:
-            logging.debug("Setting value to %s from ::  data[\"desired\"][url]" % url)
+            print("Setting value to %s from ::  data[\"desired\"][url]" % url)
             restartCamera = GetFile(url)
              
     if url in data:
         url = data[url]
         if url:
-            logging.debug("Setting value to %s from ::  data[url]" % url)
+            print("Setting value to %s from ::  data[url]" % url)
             restartCamera = GetFile(url)
    
             
 
 
 def send_reported_state_callback(status_code, user_context):
-    logging.debug ( "" )
-    logging.debug ( "Confirmation for reported state called with:" )
-    logging.debug ( "    status_code: %d" % status_code )
+    print ( "" )
+    print ( "Confirmation for reported state called with:" )
+    print ( "    status_code: %d" % status_code )
             
 # Callback received when the message that we're forwarding is processed.
 def send_confirmation_callback(message, result, user_context):
@@ -132,12 +132,12 @@ def receive_message_callback(message, hubManager):
     global RECEIVE_CALLBACKS
     message_buffer = message.get_bytearray()
     size = len(message_buffer)
-    logging.debug ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
+    print ( "    Data: <<<%s>>> & Size=%d" % (message_buffer[:size].decode('utf-8'), size) )
     map_properties = message.properties()
     key_value_pair = map_properties.get_internals()
-    logging.debug ( "    Properties: %s" % key_value_pair )
+    print ( "    Properties: %s" % key_value_pair )
     RECEIVE_CALLBACKS += 1
-    logging.debug ( "    Total calls received: %d" % RECEIVE_CALLBACKS )
+    print ( "    Total calls received: %d" % RECEIVE_CALLBACKS )
     hubManager.forward_event_to_output("output1", message, 0)
     return IoTHubMessageDispositionResult.ACCEPTED
 
@@ -171,7 +171,7 @@ class HubManager(object):
     def iothub_client_sample_run(self,message):
         try:
             if self.client.protocol == IoTHubTransportProvider.MQTT:
-                logging.debug ( "Sending data as reported property..." )
+                print ( "Sending data as reported property..." )
                 reported_state = "{\"rtsp_addr\":\"" + message + "\"}"
                 self.client.send_reported_state(reported_state, len(reported_state), send_reported_state_callback, self.SEND_REPORTED_STATE_CONTEXT)
                 status_counter = 0
@@ -181,20 +181,20 @@ class HubManager(object):
                     status_counter += 1 
              
         except IoTHubError as iothub_error:
-            logging.debug ( "Unexpected error %s from IoTHub" % iothub_error )
+            print ( "Unexpected error %s from IoTHub" % iothub_error )
             return
         except KeyboardInterrupt:
-            logging.debug ( "IoTHubClient sample stopped" )
+            print ( "IoTHubClient sample stopped" )
 
     def SendMsgToCloud(self, msg):
         try :
-            logging.info("sending message...")
+            #logging.info("sending message...")
             message=IoTHubMessage(msg)
             self.client.send_event_async(
                 "output1", message, send_confirmation_callback, 0)
-            logging.info("finished sending message...")
+            #logging.info("finished sending message...")
         except Exception :
-            logging.debug ("Exception in SendMsgToCloud")
+            print ("Exception in SendMsgToCloud")
             pass
     
  

@@ -108,32 +108,28 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
                 logging.info("id={}".format(id))
                 logging.info("label={}".format(label))
                 logging.info("confidence={}".format(confidence))
-                logging.info("Position(x,y,w,h)=({},{},{},{})".format(x, y, w, h))
+                location = "Position(x,y,w,h)=" + str(x) + "," + str(y) + "," + str(w) + "," + str(h)
+                logging.info(location)
                 result = {"label":label,
-                           "confidence":confidence
-                           "location" : {x,y,w,h}}
-                senddataToCloud= json.dumps(result)
+                           "confidence":confidence}
+                           #"location" : location}
+                dataToCloud= json.dumps(result)
                 
                 if(time.time() - startTime > iot.FreqToSendMsg):
                     if(iot.ObjectOfInterest=="ALL" or iot.ObjectOfInterest.lower() in label.lower()):
                         logging.info("I see " + str(label) + " with confidence :: " + str(confidence))
-                        hub_manager.SendMsgToCloud(senddataToCloud)
+                        hub_manager.SendMsgToCloud(dataToCloud)
                         startTime = time.time()
                     else:
                         logging.debug("Not sending to cloud as notification is set for only label::" + iot.ObjectOfInterest)
                 else:
-                    logging.debug("skipping sending msg to cloud until :: " + str(iot.FreqToSendMsg - ((time.time() - startTime))))  """
+                    logging.debug("skipping sending msg to cloud until :: " + str(iot.FreqToSendMsg - ((time.time() - startTime))))
                 logging.debug("")
         else:
             logging.debug("No results")
 
 def restartInference(camera_client = None,hub_manager = None) :
-    """camera_client.set_overlay_state("off")
-    camera_client.set_analytics_state("off")
-    time.sleep(5)
-    camera_client.set_analytics_state("on")
-    camera_client.set_overlay_state("on")"""
-    iot.restartCamera = False
+    iot.restartCamera = False 
     camera_client.set_preview_state("off")
     camera_client.logout()
     time.sleep(2)
