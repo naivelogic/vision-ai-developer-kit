@@ -86,8 +86,9 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
     startTime = time.time()
     for result in results:
         if iot.restartCamera :
-            logging.debug(iot.restartCamera)
-            restartInference(camera_client,hub_manager)
+            logging.info(iot.restartCamera)
+            #restartInference(camera_client,hub_manager)
+            restartCam(camera_client,hub_manager)
         if result is not None and result.objects is not None and len(result.objects):
             timestamp = result.timestamp
             if timestamp:
@@ -97,7 +98,8 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
             for object in result.objects:
                 if iot.restartCamera :
                     logging.info(iot.restartCamera)
-                    restartInference(camera_client,hub_manager)
+                    #restartInference(camera_client,hub_manager)
+                    restartCam(camera_client,hub_manager)
                 id = object.id
                 label = object.label
                 confidence = object.confidence
@@ -111,11 +113,13 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
                 location = "Position(x,y,w,h)=" + str(x) + "," + str(y) + "," + str(w) + "," + str(h)
                 logging.info(location)
                 result = {"label":label,
-                           "confidence":confidence}
-                           #"location" : location}
+                            "confidence":confidence}
+                            #"location" : location}
                 dataToCloud= json.dumps(result)
                 
+                #Checking if time to send message to make sure we are not sending more messages then set in twin 
                 if(time.time() - startTime > iot.FreqToSendMsg):
+                    #Checking if Object Of Interest returned from tarined mdoel is found to send alert to cloud
                     if(iot.ObjectOfInterest=="ALL" or iot.ObjectOfInterest.lower() in label.lower()):
                         logging.info("I see " + str(label) + " with confidence :: " + str(confidence))
                         hub_manager.SendMsgToCloud(dataToCloud)
@@ -125,14 +129,46 @@ def print_inferences(results=None, camera_client=None,hub_manager=None):
                 else:
                     logging.debug("skipping sending msg to cloud until :: " + str(iot.FreqToSendMsg - ((time.time() - startTime))))
                 logging.debug("")
-        else:
-            logging.debug("No results")
+            else:
+                logging.debug("No results")
 
 def restartInference(camera_client = None,hub_manager = None) :
-    iot.restartCamera = False 
-    camera_client.set_preview_state("off")
+    iot.restartCamera = False
+    try:
+        camera_client.set_overlay_state("off")
+        camera_client.set_analytics_state("off")
+        time.sleep(1)
+        camera_client.set_analytics_state("on")
+        camera_client.set_overlay_state("on")
+    except:
+        logging.debug("we have got issue during vam ON off after camer switch ")
+        restartCam(camera_client,hub_manager)
+        #TO DO 
+        # Try recovery here 
+'''    try:
+        with camera_client.get_inferences() as results:
+                print_inferences(results,camera_client,hub_manager)
+    except KeyboardInterrupt:
+        logging.debug("Stopping")
+    try:
+        logging.debug("inside infinite loop now")
+        while(True):
+            time.sleep(2)
+    except KeyboardInterrupt:
+        logging.debug("Stopping") '''
+
+
+def restartCam(camera_client = None,hub_manager = None):
+    iot.restartCamera = False
+    # turning everything off and logging out ...
     camera_client.logout()
-    time.sleep(2)
+    if camera_client is not None:
+        camera_client = None
+
+    utility.CallSystemCmd("systemctl restart qmmf-webserver")
+    time.sleep(1)
+    utility.CallSystemCmd("systemctl restart ipc-webserver")
+    time.sleep(1)
     ip_addr = utility.getWlanIp()
     with CameraClient.connect(ip_address=ip_addr, username='admin', password='admin') as camera_client:
         #this call we set the camera to dispaly over HDMI 

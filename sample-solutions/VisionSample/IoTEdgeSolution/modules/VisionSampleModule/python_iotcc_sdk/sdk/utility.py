@@ -47,6 +47,21 @@ def prepare_folder(folder):
     else:
         os.makedirs(folder, exist_ok=True)
 
+""" def reporthook(count, block_size, total_size): 
+    if int(count * block_size * 100 / total_size) == 100:
+        print('Download completed!')"""
+
+def WaitForFileDownload(FileName):
+    # ----------------------------------------------------
+    # Wait until the end of the download
+    # ----------------------------------------------------
+    valid=0
+    while valid==0:
+        try:
+            with open(FileName):valid=1
+        except IOError:
+            time.sleep(1)
+    print("Got it ! File Download Complete !")
 def GetFile(ModelUrl) :
     FileName = ModelUrl.split("/")[-1]
     if FileName:
@@ -54,7 +69,9 @@ def GetFile(ModelUrl) :
         dirpath = os.getcwd()
         #src = os.path.join(dirpath,"model")
         dst = os.path.abspath("/app/vam_model_folder")
+        print("Downloading File ::" + FileName)
         urllib2.urlretrieve(ModelUrl, filename=(os.path.join(dst,FileName)))
+        WaitForFileDownload(os.path.join(dst,FileName))
         return True
     else:
         print("Cannot extract file name from URL")
@@ -102,6 +119,11 @@ def checkmodelexist():
         else:
             print("No dlc or tflit model on device")
             return False
+
+def CallSystemCmd(cmd):
+    print('Command we are sending is ::' + cmd)
+    returnedvalue = sp.call(cmd,shell=True)
+    print('returned-value is:' + str(returnedvalue))
 
 # this function will find the required files to be transferred to the device 
 def find_file(input_path, suffix):

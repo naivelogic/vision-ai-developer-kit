@@ -28,7 +28,7 @@ ModelUrl = ""
 LabelUrl = ""
 ConfigUrl = ""
 restartCamera = False
-FreqToSendMsg = 10
+FreqToSendMsg = 12
 ObjectOfInterest = "ALL"
 
 def module_twin_callback(update_state, payload, user_context):
@@ -43,51 +43,46 @@ def module_twin_callback(update_state, payload, user_context):
     print ( "    updateStatus: %s" % update_state )
     print ( "    payload: %s" % payload )
     data = json.loads(payload)
+    setRestartCamera = False
 
     if "desired" in data and "ModelUrl" in data["desired"]:
         ModelUrl = data["desired"]["ModelUrl"]
         if ModelUrl:
             print("Setting value to %s from ::  data[\"desired\"][\"ModelUrl\"]" % ModelUrl)
-            GetFile(ModelUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(ModelUrl)
         else:
             print(ModelUrl)
     if "ModelUrl" in data:
         ModelUrl = data["ModelUrl"]
         if ModelUrl:
             print("Setting value to %s from ::  data[\"ModelUrl\"]" % ModelUrl)
-            GetFile(ModelUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(ModelUrl)
 
     if "desired" in data and "LabelUrl" in data["desired"]:
         LabelUrl = data["desired"]["LabelUrl"]
         if LabelUrl:
             print("Setting value to %s from ::  data[\"desired\"][\"LabelUrl\"]" % LabelUrl)
-            GetFile(LabelUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(LabelUrl)
         else:
             print(LabelUrl)
     if "LabelUrl" in data:
         LabelUrl = data["LabelUrl"]
         if LabelUrl:
             print("Setting value to %s from ::  data[\"LabelUrl\"]" % LabelUrl)
-            GetFile(LabelUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(LabelUrl)
         
     
     if "desired" in data and "ConfigUrl" in data["desired"]:
         ConfigUrl = data["desired"]["ConfigUrl"]
         if ConfigUrl:
             print("Setting value to %s from ::  data[\"desired\"][\"ConfigUrl\"]" % ConfigUrl)
-            GetFile(ConfigUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(ConfigUrl)
 
     if "ConfigUrl" in data:
         ConfigUrl = data["ConfigUrl"]
         if ConfigUrl:
             print("Setting value to %s from ::  data[\"ConfigUrl\"]" % ConfigUrl)
-            GetFile(ConfigUrl)
-            restartCamera = True  
+            setRestartCamera = GetFile(ConfigUrl)
 
     if "desired" in data and "FreqToSendMsg" in data["desired"]:
         
@@ -105,23 +100,8 @@ def module_twin_callback(update_state, payload, user_context):
     if "ObjectOfInterest" in data:
         ObjectOfInterest = data["ObjectOfInterest"]
         print("Setting value to %s from ::  data[\"ObjectOfInterest\"]" % ObjectOfInterest)
-
-def downloadUrl(data,url):
-    global restartCamera
-    if "desired" in data and url in data["desired"]:
-        url = data["desired"][url]
-        if url:
-            print("Setting value to %s from ::  data[\"desired\"][url]" % url)
-            restartCamera = GetFile(url)
-             
-    if url in data:
-        url = data[url]
-        if url:
-            print("Setting value to %s from ::  data[url]" % url)
-            restartCamera = GetFile(url)
-   
-            
-
+    if setRestartCamera:
+        restartCamera = True 
 
 def send_reported_state_callback(status_code, user_context):
     print ( "" )
