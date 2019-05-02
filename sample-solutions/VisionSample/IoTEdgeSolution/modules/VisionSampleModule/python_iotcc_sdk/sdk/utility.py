@@ -7,13 +7,12 @@ import socket
 import logging
 import json
 import urllib.request as urllib2
+from urllib.request import urlopen
 import glob
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.disabled = False
-
-
 #src = "./var/azureml-app/azureml-models"
 #dst = "./var/azureml-app/azureml-models-device"
 
@@ -63,7 +62,11 @@ def WaitForFileDownload(FileName):
             time.sleep(1)
     print("Got it ! File Download Complete !")
 def GetFile(ModelUrl) :
-    FileName = ModelUrl.split("/")[-1]
+    #adding code to fix issue where the file name may not be part of url details here 
+    #
+    remotefile = urlopen(ModelUrl)
+    myurl = remotefile.url
+    FileName = myurl.split("/")[-1]
     if FileName:
         # find root folders
         dirpath = os.getcwd()

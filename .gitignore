@@ -339,3 +339,5 @@ sample-solutions/VisionSample/IoTEdgeSolution/.env
 sample-solutions/VisionSample/IoTEdgeSolution/config/deployment.json
 sample-solutions/VisionSample/IoTEdgeSolution/config/deployment.json
 sample-solutions/VisionSample/IoTEdgeSolution/modules/VisionSampleModule/python_iotcc_sdk/sdk/main_Undersontruction.py
+sample-solutions/VisionSample/IoTEdgeSolution/config/deployment.json
+sample-solutions/VisionSample/IoTEdgeSolution/modules/VisionSampleModule/python_iotcc_sdk/sdk/test.py
