@@ -4,7 +4,7 @@ This solution is used to build and deploy a new AIVisionDevKitGetStartedModule d
 
 ## Setup Build Environment
 
-1. Refer to the "Setup Visual Studio Code Development Environment" section in [VisionSample README.md](../../VisionSample/README.md) to setup a build environment.
+1. Refer to the "Setup Visual Studio Code Development Environment" section in [VisionSample README.md](../../research/VisionSample/README.md) to setup a build environment.
 
 1. Install [Docker Community Edition (CE)](https://docs.docker.com/install/#supported-platforms). Don't sign in to Docker Desktop after Docker CE is installed.
 
@@ -13,7 +13,7 @@ This solution is used to build and deploy a new AIVisionDevKitGetStartedModule d
 
 ## Develop a New AIVisionDevKitGetStartedModule
 
-Refer to [modules/AIVisionDevKitGetStartedModule/python_iotcc_sdk/README.md](modules/AIVisionDevKitGetStartedModule/python_iotcc_sdk/README.md) to develop and test source code for a new AIVisionDevKitGetStartedModule.
+Refer to [modules/AIVisionDevKitGetStartedModule/python_iotcc_sdk/README.md](https://github.com/microsoft/vision-ai-developer-kit/tree/master/camera-sdk) to develop and test source code for a new AIVisionDevKitGetStartedModule.
 
 ## Build a Local Container Image for AIVisionDevKitGetStartedModule
 
@@ -30,7 +30,7 @@ Refer to [modules/AIVisionDevKitGetStartedModule/python_iotcc_sdk/README.md](mod
 1. Sign in to your Azure Container Registry by entering the following command in the Visual Studio Code integrated terminal (replace <REGISTRY_USER_NAME>, <REGISTRY_PASSWORD>, and <REGISTRY_NAME> to your container registry values set in the .env file).
     - `docker login -u <REGISTRY_USER_NAME> -p <REGISTRY_PASSWORD> <REGISTRY_NAME>.azurecr.io`
 
-1. Copy the files DLC, labels.txt, and va-snpe-engine-library_config.json to the modules\AIVisionDevKitGetStartedModule\model folder.
+1. The default AI model (DLC, labels.txt, and va-snpe-engine-library_config.json) for AIVisionDevKitGetStartedModule is located in  modules\AIVisionDevKitGetStartedModule\model folder. In case you want to use your own model, please change the files in that folder.
 
 1. Open modules\AIVisionDevKitGetStartedModule\module.json and change the version setting in the tag property for creating a new version of the module image.
 
